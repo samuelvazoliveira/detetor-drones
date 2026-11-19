@@ -97,7 +97,7 @@ class MainActivity : ComponentActivity() {
                     Text("${dot(ok("s3"))} 2,4 GHz   ${dot(ok("c5"))} 5 GHz   ${dot(ok("sdr"))} Rádio 433 MHz–1,3 GHz",
                         fontSize = 13.sp)
                     Text(if (st.optBoolean("time_ok")) "Hora do detetor: certa"
-                         else "Hora do detetor: POR CONFIRMAR (sem relógio nem telemóvel)",
+                         else "Hora do detetor: por confirmar (acerta-se ao ligar)",
                         fontSize = 13.sp,
                         color = if (st.optBoolean("time_ok")) Color.Unspecified else Color(0xFFFFB74D))
                 }

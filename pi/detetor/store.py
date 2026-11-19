@@ -8,7 +8,7 @@ SCHEMA = """
 CREATE TABLE IF NOT EXISTS events (
     id        INTEGER PRIMARY KEY AUTOINCREMENT,
     ts        REAL NOT NULL,          -- hora Unix (UTC) do Pi
-    time_ok   INTEGER NOT NULL,       -- 1 se a hora do Pi estava acertada (RTC ou telemóvel)
+    time_ok   INTEGER NOT NULL,       -- 1 se a hora do Pi já tinha sido acertada pelo telemóvel
     kind      TEXT NOT NULL,          -- 'alert' | 'track' | 'rf' | 'system'
     source    TEXT NOT NULL,          -- 's3' | 'c5' | 'sdr' | 'hub'
     drone_id  TEXT,

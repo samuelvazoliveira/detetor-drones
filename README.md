@@ -5,7 +5,7 @@ Sistema **passivo** para detetar e identificar drones por cima de casa e juntar 
 ```
  antena 2,4 ─ ESP32-S3 ─┐ USB
  antena 5   ─ ESP32-C5 ─┼──── hub ──── Raspberry Pi Zero 2 W ── Bluetooth ──► app Android
- antena SDR ─ RTL-SDR ──┘                (registo SQLite + RTC)
+ antena SDR ─ RTL-SDR ──┘                (registo SQLite)
 ```
 
 | Pasta | O quê |
