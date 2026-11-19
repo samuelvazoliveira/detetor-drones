@@ -126,7 +126,7 @@ class Hub:
     def status(self) -> dict:
         now = self.clock()
         devs = {}
-        for name in ("s3", "c5", "sdr"):
+        for name in ("s3", "c5", "sdr") if self.cfg.rf_enabled else ("s3", "c5"):
             st = self.devices.get(name, {})
             alive = bool(st) and now - st.get("last", 0) < 30 and st.get("ok", True)
             devs[name] = {"ok": alive, **{k: v for k, v in st.items() if k != "last"}}

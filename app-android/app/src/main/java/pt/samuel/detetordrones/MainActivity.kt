@@ -94,8 +94,8 @@ class MainActivity : ComponentActivity() {
                     val devs = st.optJSONObject("devs") ?: JSONObject()
                     fun ok(k: String) = devs.optJSONObject(k)?.optBoolean("ok") == true
                     val dot = { b: Boolean -> if (b) "●" else "○" }
-                    Text("${dot(ok("s3"))} 2,4 GHz   ${dot(ok("c5"))} 5 GHz   ${dot(ok("sdr"))} Rádio 433 MHz–1,3 GHz",
-                        fontSize = 13.sp)
+                    val radio = if (devs.has("sdr")) "   ${dot(ok("sdr"))} Rádio 433 MHz–1,3 GHz" else ""
+                    Text("${dot(ok("s3"))} 2,4 GHz   ${dot(ok("c5"))} 5 GHz$radio", fontSize = 13.sp)
                     Text(if (st.optBoolean("time_ok")) "Hora do detetor: certa"
                          else "Hora do detetor: por confirmar (acerta-se ao ligar)",
                         fontSize = 13.sp,

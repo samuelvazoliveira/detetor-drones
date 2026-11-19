@@ -59,13 +59,18 @@ def test_hora_pelo_telemovel_e_historico():
 
 
 def test_estado_dos_aparelhos():
-    hub, _, clock, _ = make_hub()
+    hub, _, clock, _ = make_hub(rf_enabled=True)
     hub.on_esp_line(json.dumps({"t": "hb", "dev": "c5", "up": 10, "frames": 5, "rid": 0}))
     hub.on_rf_status(True)
     st = hub.status()
     assert st["devs"]["c5"]["ok"] and st["devs"]["sdr"]["ok"] and not st["devs"]["s3"]["ok"]
     clock.t += 60
     assert not hub.status()["devs"]["c5"]["ok"]
+
+
+def test_sem_sdr_nao_aparece_no_estado():
+    hub, _, _, _ = make_hub()
+    assert set(hub.status()["devs"]) == {"s3", "c5"}
 
 
 # ---------------------------------------------------------------- RF

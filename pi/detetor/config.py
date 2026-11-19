@@ -27,7 +27,7 @@ class Config:
     # Registo de posições: no máximo uma linha por drone a cada N segundos.
     track_interval_s: float = 2.0
     # ---- RTL-SDR ----
-    rf_enabled: bool = True
+    rf_enabled: bool = False          # FPV/caseiros fora do âmbito por agora (19/11)
     rf_gain_db: float = 40.0
     rf_integration_s: float = 1.0
     rf_baseline_sweeps: int = 30       # varrimentos usados para aprender o ruído de fundo
