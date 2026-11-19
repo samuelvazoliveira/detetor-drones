@@ -1,0 +1,15 @@
+[Unit]
+Description=Detetor de Drones (hub: ESP32 + RTL-SDR + Bluetooth)
+After=bluetooth.target
+Wants=bluetooth.target
+
+[Service]
+ExecStart=/opt/detetor-drones/venv/bin/python -m detetor
+WorkingDirectory=/opt/detetor-drones
+Restart=always
+RestartSec=5
+# root: precisa de acertar o relógio e de mexer no Bluetooth
+User=root
+
+[Install]
+WantedBy=multi-user.target

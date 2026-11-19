@@ -1,0 +1,7 @@
+{
+  "home_lat": 40.0000000,
+  "home_lon": -8.0000000,
+  "ble_name": "DetetorDrones",
+  "rf_enabled": true,
+  "rf_gain_db": 40.0
+}

@@ -1,0 +1,7 @@
+firmware/.pio/
+firmware/lib/opendroneid/
+__pycache__/
+.pytest_cache/
+app-android/.gradle/
+app-android/build/
+app-android/app/build/

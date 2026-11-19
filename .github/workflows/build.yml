@@ -1,0 +1,61 @@
+name: Compilar tudo
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  app-android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: "17" }
+      - uses: gradle/actions/setup-gradle@v4
+        with: { gradle-version: "8.10.2" }
+      - name: Compilar APK
+        run: gradle -p app-android assembleDebug --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: app-detetor-drones
+          path: app-android/app/build/outputs/apk/debug/*.apk
+
+  firmware:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: { env: [s3, c5] }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install platformio
+      - name: Compilar firmware ${{ matrix.env }}
+        run: pio run -d firmware -e ${{ matrix.env }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: firmware-${{ matrix.env }}
+          path: |
+            firmware/.pio/build/${{ matrix.env }}/*.bin
+
+  firmware-testes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Testar o parser de Remote ID no PC
+        run: |
+          git clone -q https://github.com/opendroneid/opendroneid-core-c.git /tmp/odid
+          cd /tmp/odid && git checkout -q 849c03adbe0cdd68997a462fafab397edcfe53f3 && cd -
+          O=/tmp/odid/libopendroneid
+          gcc -c -I$O $O/opendroneid.c -o /tmp/odid.o
+          gcc -c -I$O $O/wifi.c -o /tmp/wifi.o
+          g++ -Ifirmware/src -I$O firmware/test/test_parser.cpp firmware/src/rid_parser.cpp \
+              /tmp/odid.o /tmp/wifi.o -o /tmp/t && /tmp/t
+
+  pi-testes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install pytest pyserial
+      - run: cd pi && python -m pytest -q tests
