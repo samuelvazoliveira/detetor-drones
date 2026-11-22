@@ -577,7 +577,7 @@ void setup() {
   // Um só rádio para Wi-Fi e Bluetooth: 40% do tempo para o Bluetooth.
   scan->setInterval(100);
   scan->setWindow(40);
-#if defined(MYNEWT_VAL_BLE_EXT_ADV) && MYNEWT_VAL_BLE_EXT_ADV
+#if CONFIG_BT_NIMBLE_EXT_ADV
   scan->setPhy(NimBLEScan::Phy::SCAN_ALL);  // 1M + Coded (Long Range)
 #endif
   scan->start(0, false, true);
