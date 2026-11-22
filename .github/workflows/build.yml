@@ -23,6 +23,7 @@ jobs:
   firmware:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix: { env: [s3, c5] }
     steps:
       - uses: actions/checkout@v4
@@ -31,11 +32,19 @@ jobs:
       - run: pip install platformio
       - name: Compilar firmware ${{ matrix.env }}
         run: pio run -d firmware -e ${{ matrix.env }}
+      - name: Juntar num só ficheiro (gravar no endereço 0x0)
+        run: |
+          pip install esptool
+          B=firmware/.pio/build/${{ matrix.env }}
+          CHIP=$([ "${{ matrix.env }}" = s3 ] && echo esp32s3 || echo esp32c5)
+          BOOTAPP=$(find ~/.platformio -name boot_app0.bin | head -1)
+          python -m esptool --chip $CHIP merge_bin -o $B/detetor-${{ matrix.env }}-completo.bin \
+            0x0 $B/bootloader.bin 0x8000 $B/partitions.bin 0xe000 $BOOTAPP 0x10000 $B/firmware.bin
+          ls -la $B/*.bin
       - uses: actions/upload-artifact@v4
         with:
           name: firmware-${{ matrix.env }}
-          path: |
-            firmware/.pio/build/${{ matrix.env }}/*.bin
+          path: firmware/.pio/build/${{ matrix.env }}/detetor-*-completo.bin
 
   firmware-testes:
     runs-on: ubuntu-latest
