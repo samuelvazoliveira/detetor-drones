@@ -205,6 +205,8 @@ static void storeEvent(uint32_t id, const char *kind, const char *droneId, JsonO
   if (size > LOG_ROTATE_BYTES) {
     LittleFS.remove("/ev.old");
     LittleFS.rename("/ev.log", "/ev.old");
+    File n = LittleFS.open("/ev.log", "a");
+    if (n) n.close();
   }
 }
 
@@ -336,7 +338,7 @@ static void pumpHistory() {
       hist.active = false;
       return;
     }
-    File f = LittleFS.exists(files[hist.file]) ? LittleFS.open(files[hist.file], "r") : File();
+    File f = LittleFS.open(files[hist.file], "r");
     if (!f || hist.pos >= f.size()) {
       if (f) f.close();
       hist.file++;
@@ -546,6 +548,11 @@ void setup() {
   prefs.putLong64(ke, bootEpoch);
 
   if (!LittleFS.begin(true)) Serial.println("{\"t\":\"erro\",\"msg\":\"LittleFS\"}");
+  // cria os ficheiros vazios: evita os avisos "does not exist" ao ler o histórico
+  for (const char *fn : {"/ev.old", "/ev.log"}) {
+    File f = LittleFS.open(fn, "a");
+    if (f) f.close();
+  }
 
   // Wi-Fi só em modo de escuta: nunca se liga a nenhuma rede.
   WiFi.mode(WIFI_STA);
