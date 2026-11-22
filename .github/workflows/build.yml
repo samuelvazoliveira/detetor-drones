@@ -68,3 +68,24 @@ jobs:
         with: { python-version: "3.11" }
       - run: pip install pytest pyserial
       - run: cd pi && python -m pytest -q tests
+
+  publicar:
+    # Põe o APK e o firmware como ficheiros diretos em Releases → "ultima"
+    needs: [app-android, firmware]
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions: { contents: write }
+    steps:
+      - uses: actions/download-artifact@v4
+        with: { path: dist, merge-multiple: true }
+      - name: Publicar a última versão
+        env: { GH_TOKEN: "${{ github.token }}" }
+        run: |
+          ls -la dist
+          cp dist/*.apk DetetorDrones.apk
+          cp dist/detetor-s3-completo.bin detetor-s3-completo.bin
+          gh release delete ultima -y --cleanup-tag -R "$GITHUB_REPOSITORY" || true
+          gh release create ultima -R "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
+            --title "Última versão" \
+            --notes "Compilada automaticamente (commit ${GITHUB_SHA::7}). APK para o telemóvel e firmware para o ESP32-S3 (gravar no endereço 0x0)." \
+            DetetorDrones.apk detetor-s3-completo.bin
