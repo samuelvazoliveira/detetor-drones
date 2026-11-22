@@ -18,6 +18,7 @@ data class Ev(
     val data: JSONObject,
 ) {
     val isRf get() = data.has("band")
+    val isWifiHint get() = data.optString("pattern") == "wifi_drone"
     val title: String get() = titleFor(this)
 
     companion object {
@@ -35,6 +36,10 @@ data class Ev(
 
 fun titleFor(e: Ev): String {
     val d = e.data
+    if (e.isWifiHint) {
+        val name = d.optString("ssid").ifEmpty { d.optString("maker").ifEmpty { d.optString("mac") } }
+        return "Provável drone (Wi-Fi): $name"
+    }
     if (e.isRf) {
         val what = if (d.optString("pattern") == "hopping") "comando FPV" else "vídeo FPV"
         return "Rádio: $what em ${d.optString("band")}"

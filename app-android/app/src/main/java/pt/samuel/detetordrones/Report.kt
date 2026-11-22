@@ -24,6 +24,13 @@ object Report {
         val d = e.data
         val out = mutableListOf<String>()
         out += "Data/hora: ${when_(e)}"
+        if (e.isWifiHint) {
+            out += "Tipo: provável drone com ligação Wi-Fi (sem identificação)"
+            if (d.has("ssid")) out += "Nome da rede: ${d.optString("ssid")}"
+            if (d.has("maker")) out += "Fabricante (pelo endereço): ${d.optString("maker")}"
+            out += "Endereço: ${d.optString("mac")} · canal ${d.optString("ch")} · sinal ${d.optString("rssi")} dBm"
+            return out
+        }
         if (e.isRf) {
             out += "Tipo: atividade de rádio (sem identificação)"
             out += "Banda: ${d.optString("band")} · padrão: " +

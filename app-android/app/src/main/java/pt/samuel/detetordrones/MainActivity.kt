@@ -75,7 +75,7 @@ class MainActivity : ComponentActivity() {
                 items(alerts, key = { "${it.rid}-${it.ts}" }) { e ->
                     Column(Modifier.fillMaxWidth().clickable { open = e }.padding(vertical = 8.dp)) {
                         Text(e.title, fontWeight = FontWeight.SemiBold,
-                            color = if (e.isRf) Color(0xFFFFB74D) else Color(0xFFEF9A9A))
+                            color = if (e.isRf || e.isWifiHint) Color(0xFFFFB74D) else Color(0xFFEF9A9A))
                         Text(Report.when_(e), fontSize = 12.sp, color = Color.Gray)
                     }
                     HorizontalDivider()
@@ -95,7 +95,8 @@ class MainActivity : ComponentActivity() {
                     fun ok(k: String) = devs.optJSONObject(k)?.optBoolean("ok") == true
                     val dot = { b: Boolean -> if (b) "●" else "○" }
                     val radio = if (devs.has("sdr")) "   ${dot(ok("sdr"))} Rádio 433 MHz–1,3 GHz" else ""
-                    Text("${dot(ok("s3"))} 2,4 GHz   ${dot(ok("c5"))} 5 GHz$radio", fontSize = 13.sp)
+                    val c5 = if (devs.has("c5")) "   ${dot(ok("c5"))} 5 GHz" else ""
+                    Text("${dot(ok("s3"))} Detetor 2,4 GHz$c5$radio", fontSize = 13.sp)
                     Text(if (st.optBoolean("time_ok")) "Hora do detetor: certa"
                          else "Hora do detetor: por confirmar (acerta-se ao ligar)",
                         fontSize = 13.sp,

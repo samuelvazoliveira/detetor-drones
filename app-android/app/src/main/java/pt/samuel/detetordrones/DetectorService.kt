@@ -308,6 +308,7 @@ class DetectorService : Service() {
         val body = when {
             e == null -> "Abre a app para ver o histórico"
             e.isRf -> "Atividade de rádio típica de drone. Sem identificação."
+            e.isWifiHint -> "Rede Wi-Fi típica de drone. Sem identificação."
             e.data.has("op_dist_m") -> "Piloto a ${e.data.optInt("op_dist_m")} m de casa"
             else -> "Remote ID recebido"
         }
