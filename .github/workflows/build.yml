@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      matrix: { env: [s3, c5] }
+      matrix: { env: [s3] }   # c5 fora da compra atual
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

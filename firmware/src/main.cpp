@@ -199,7 +199,7 @@ void setup() {
   scan->setMaxResults(0);
   scan->setInterval(100);
   scan->setWindow(99);
-#if CONFIG_BT_NIMBLE_EXT_ADV
+#if defined(MYNEWT_VAL_BLE_EXT_ADV) && MYNEWT_VAL_BLE_EXT_ADV
   scan->setPhy(NimBLEScan::Phy::SCAN_ALL);  // 1M + Coded (Long Range)
 #endif
   scan->start(0, false, true);
