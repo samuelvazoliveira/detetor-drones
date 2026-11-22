@@ -14,6 +14,22 @@ android {
         versionCode = 1
         versionName = "1.0"
     }
+    // Chave de assinatura fixa, vinda dos Secrets do GitHub (KEYSTORE_B64 / KEYSTORE_PASSWORD).
+    // Sem ela, cada compilação usa uma chave nova e as atualizações não instalam por cima.
+    val ksPath: String? = System.getenv("KEYSTORE_PATH")
+    signingConfigs {
+        if (ksPath != null) create("fixa") {
+            storeFile = file(ksPath)
+            storePassword = System.getenv("KEYSTORE_PASSWORD")
+            keyAlias = "detetor"
+            keyPassword = System.getenv("KEYSTORE_PASSWORD")
+        }
+    }
+    buildTypes {
+        getByName("debug") {
+            if (ksPath != null) signingConfig = signingConfigs.getByName("fixa")
+        }
+    }
     buildFeatures { compose = true }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17

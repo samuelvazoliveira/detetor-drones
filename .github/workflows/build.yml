@@ -13,7 +13,18 @@ jobs:
         with: { distribution: temurin, java-version: "17" }
       - uses: gradle/actions/setup-gradle@v4
         with: { gradle-version: "8.10.2" }
+      - name: Chave de assinatura (se existir nos Secrets)
+        env: { KS: "${{ secrets.KEYSTORE_B64 }}" }
+        run: |
+          if [ -n "$KS" ]; then
+            echo "$KS" | base64 -d > "$RUNNER_TEMP/detetor.jks"
+            echo "KEYSTORE_PATH=$RUNNER_TEMP/detetor.jks" >> "$GITHUB_ENV"
+            echo "A usar a chave fixa"
+          else
+            echo "Sem chave fixa: assinatura de debug aleatória"
+          fi
       - name: Compilar APK
+        env: { KEYSTORE_PASSWORD: "${{ secrets.KEYSTORE_PASSWORD }}" }
         run: gradle -p app-android assembleDebug --no-daemon
       - uses: actions/upload-artifact@v4
         with:
