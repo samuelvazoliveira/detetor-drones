@@ -197,8 +197,10 @@ void setup() {
   scan->setActiveScan(false);  // passivo: não envia scan requests
   scan->setDuplicateFilter(false);
   scan->setMaxResults(0);
+  // O S3 só tem um rádio de 2,4 GHz para Wi-Fi e Bluetooth: com janela de 99% o Wi-Fi quase
+  // não tinha tempo (1 trama em 30 s no primeiro teste). 40% do tempo para o Bluetooth.
   scan->setInterval(100);
-  scan->setWindow(99);
+  scan->setWindow(40);
 #if defined(MYNEWT_VAL_BLE_EXT_ADV) && MYNEWT_VAL_BLE_EXT_ADV
   scan->setPhy(NimBLEScan::Phy::SCAN_ALL);  // 1M + Coded (Long Range)
 #endif
