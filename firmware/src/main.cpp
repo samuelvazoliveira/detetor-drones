@@ -22,9 +22,10 @@
 #include <map>
 #include <string>
 
+#include "rf_lowcost.h"
 #include "rid_parser.h"
 
-#define FW_VERSION "3.0"
+#define FW_VERSION "3.1"
 #define BLE_NAME "DetetorDrones"
 #define NUS_UUID "6e400001-b5a3-f393-e0a9-e50e24dcca9e"
 #define RX_UUID "6e400002-b5a3-f393-e0a9-e50e24dcca9e"
@@ -501,6 +502,8 @@ static void sendStatus() {
   s3["frames"] = statFrames;
   s3["rid"] = statRid;
   s3["up"] = millis() / 1000;
+  s3["nrf24"] = rfLowcostStatus().nrfPresent;
+  s3["rx5808"] = rfLowcostStatus().rx58Present;
   JsonArray home = st["home"].to<JsonArray>();
   home.add(nullptr);
   home.add(nullptr);
@@ -532,6 +535,7 @@ static void handleCommand(const std::string &line) {
 // =====================================================================================
 void setup() {
   Serial.begin(115200);
+  Serial.setTxTimeoutMs(0);  // sem PC ligado (na caixa), escrever na USB não pode bloquear
   ridQueue = xQueueCreate(24, sizeof(RawRid));
   hintQueue = xQueueCreate(16, sizeof(WifiHint));
   cmdQueue = xQueueCreate(16, sizeof(CmdChunk));
@@ -588,6 +592,8 @@ void setup() {
   scan->setPhy(NimBLEScan::Phy::SCAN_ALL);  // 1M + Coded (Long Range)
 #endif
   scan->start(0, false, true);
+
+  rfLowcostBegin();  // nRF24 / RX5808, se estiverem ligados (só medem, por agora)
 
   JsonDocument hello;
   hello["t"] = "hello";
