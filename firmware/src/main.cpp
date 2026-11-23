@@ -25,7 +25,7 @@
 #include "rf_lowcost.h"
 #include "rid_parser.h"
 
-#define FW_VERSION "3.1"
+#define FW_VERSION "3.2"
 #define BLE_NAME "DetetorDrones"
 #define NUS_UUID "6e400001-b5a3-f393-e0a9-e50e24dcca9e"
 #define RX_UUID "6e400002-b5a3-f393-e0a9-e50e24dcca9e"
@@ -34,6 +34,7 @@
 #define DWELL_MS 150                 // tempo em cada canal Wi-Fi
 #define NEW_AFTER_S 600              // um drone volta a ser "novo" ao fim de 10 min sem sinal
 #define TRACK_INTERVAL_MS 2000       // no máximo um ponto de trajeto por drone a cada 2 s
+#define REMIND_S 30                  // enquanto o drone estiver presente, lembra a app a cada 30 s
 #define DRONE_TIMEOUT_MS 120000
 #define LOG_ROTATE_BYTES 500000      // /ev.log passa a /ev.old a partir daqui (2 ficheiros)
 
@@ -388,6 +389,8 @@ static Drone drones[12];
 struct Seen {
   uint32_t lastSeenS;
   uint32_t lastTrackMs;
+  uint32_t firstSeenS;   // início da presença atual
+  uint32_t lastRemindS;  // último "ainda presente" enviado
 };
 static std::map<std::string, Seen> seen;  // id do drone → última vez visto
 
@@ -467,7 +470,23 @@ static void report(const std::string &did, JsonObjectConst data, bool trackable)
     kind = "alert";
     alertCount++;
     prefs.putULong("alerts", alertCount);
+    s.firstSeenS = nowS;
+    s.lastRemindS = nowS;
   } else {
+    // ainda presente: só para a app (não vai para a flash nem conta como alerta novo)
+    if (nowS - s.lastRemindS >= REMIND_S) {
+      s.lastRemindS = nowS;
+      JsonDocument still;
+      still["t"] = "still";
+      still["ts"] = (double)nowEpoch();
+      still["time_ok"] = timeSynced;
+      still["kind"] = "still";
+      still["source"] = "s3";
+      still["drone_id"] = did.c_str();
+      still["since_s"] = nowS - s.firstSeenS;
+      still["data"] = data;
+      sendToApp(still);
+    }
     if (!trackable || millis() - s.lastTrackMs < TRACK_INTERVAL_MS) return;
     kind = "track";
   }

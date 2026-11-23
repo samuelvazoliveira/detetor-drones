@@ -250,6 +250,13 @@ class DetectorService : Service() {
                 Repo.refresh()
             }
             "track" -> Repo.db.insert(Ev.from(m))
+            "still" -> {
+                // drone continua por perto: volta a tocar, na mesma notificação desse drone
+                val e = Ev.from(m)
+                val min = m.optLong("since_s") / 60
+                val sec = m.optLong("since_s") % 60
+                notifyAlert("Ainda presente: ${e.title}", e, "Há ${min} min ${sec} s por perto")
+            }
             "hist" -> {
                 val e = Ev.from(m)
                 if (Repo.db.insert(e) && e.kind == "alert") histNewAlerts++
@@ -304,14 +311,15 @@ class DetectorService : Service() {
         getSystemService(NotificationManager::class.java).notify(1, ongoing(s))
     }
 
-    private fun notifyAlert(title: String, e: Ev?) {
-        val body = when {
+    private fun notifyAlert(title: String, e: Ev?, extra: String? = null) {
+        val base = when {
             e == null -> "Abre a app para ver o histórico"
             e.isRf -> "Atividade de rádio típica de drone. Sem identificação."
             e.isWifiHint -> "Rede Wi-Fi típica de drone. Sem identificação."
             e.data.has("op_dist_m") -> "Piloto a ${e.data.optInt("op_dist_m")} m de casa"
             else -> "Remote ID recebido"
         }
+        val body = if (extra != null) "$extra. $base" else base
         val n = Notification.Builder(this, CH_ALERT)
             .setSmallIcon(android.R.drawable.ic_dialog_alert)
             .setContentTitle(title)
@@ -320,6 +328,8 @@ class DetectorService : Service() {
             .setAutoCancel(true)
             .setContentIntent(openApp())
             .build()
-        getSystemService(NotificationManager::class.java).notify(notifId++, n)
+        // uma notificação por drone: os lembretes substituem a anterior e voltam a tocar
+        val id = e?.droneId?.let { 1000 + (it.hashCode() and 0xFFFFF) } ?: notifId++
+        getSystemService(NotificationManager::class.java).notify(id, n)
     }
 }
