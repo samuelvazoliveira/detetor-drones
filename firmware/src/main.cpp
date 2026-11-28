@@ -25,7 +25,7 @@
 #include "rf_lowcost.h"
 #include "rid_parser.h"
 
-#define FW_VERSION "3.4"
+#define FW_VERSION "3.5"
 #define BLE_NAME "DetetorDrones"
 #define NUS_UUID "6e400001-b5a3-f393-e0a9-e50e24dcca9e"
 #define RX_UUID "6e400002-b5a3-f393-e0a9-e50e24dcca9e"
@@ -459,7 +459,22 @@ static void droneData(Drone &d, JsonObject x) {
 }
 
 // regista e envia: alerta se é novo, ponto de trajeto se não
+// redes que o utilizador marcou como "não é drone" (ex.: um vizinho com SSID "DRONE")
+static std::string ignored;  // ids separados por vírgulas, guardados nas Preferences
+static bool isIgnored(const std::string &did) {
+  return ignored.find("," + did + ",") != std::string::npos;
+}
+static void addIgnored(const std::string &did) {
+  if (did.empty() || isIgnored(did)) return;
+  if (ignored.empty()) ignored = ",";
+  ignored += did + ",";
+  if (ignored.size() > 900) ignored = "," + ignored.substr(ignored.find(',', ignored.size() - 900) + 1);
+  prefs.putString("ign", ignored.c_str());
+  seen.erase(did);
+}
+
 static void report(const std::string &did, JsonObjectConst data, bool trackable) {
+  if (isIgnored(did)) return;
   uint32_t nowS = millis() / 1000;
   auto it = seen.find(did);
   bool isNew = it == seen.end() || nowS - it->second.lastSeenS > NEW_AFTER_S;
@@ -515,6 +530,11 @@ static void sendStatus() {
   st["now"] = (double)nowEpoch();
   st["last_id"] = nextId - 1;
   st["alerts"] = alertCount;
+  {
+    int n = 0;
+    for (char ch : ignored) n += ch == ',';
+    st["ignored"] = n > 0 ? n - 1 : 0;
+  }
   JsonObject s3 = st["devs"]["s3"].to<JsonObject>();
   s3["ok"] = true;
   s3["fw"] = FW_VERSION;
@@ -541,6 +561,13 @@ static void handleCommand(const std::string &line) {
     sendStatus();
   } else if (!strcmp(cmd, "status")) {
     sendStatus();
+  } else if (!strcmp(cmd, "ignore")) {
+    addIgnored(c["id"] | "");
+    sendStatus();
+  } else if (!strcmp(cmd, "unignore_all")) {
+    ignored.clear();
+    prefs.remove("ign");
+    sendStatus();
   } else if (!strcmp(cmd, "hist")) {
     hist = HistJob();
     hist.active = true;
@@ -565,6 +592,7 @@ void setup() {
   nextId = prefs.getULong("next", 1) + 20;  // salta os que podem não ter sido gravados
   prefs.putULong("next", nextId);           // grava já, senão um reinício rápido repete ids
   alertCount = prefs.getULong("alerts", 0);
+  ignored = prefs.getString("ign", "").c_str();
   // hora estimada (como o fake-hwclock): a última que se conheceu, marcada como incerta
   bootEpoch = prefs.getLong64("last", 0);
   char ke[16];

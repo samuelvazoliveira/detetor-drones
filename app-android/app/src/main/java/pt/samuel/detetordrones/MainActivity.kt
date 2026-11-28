@@ -121,6 +121,11 @@ class MainActivity : ComponentActivity() {
                 Row {
                     if (d.has("lat")) TextButton(onClick = { map(d.optString("lat"), d.optString("lon"), "Drone") }) { Text("Mapa drone") }
                     if (d.has("op_lat")) TextButton(onClick = { map(d.optString("op_lat"), d.optString("op_lon"), "Piloto") }) { Text("Mapa piloto") }
+                    if (e.isWifiHint && e.droneId != null) TextButton(onClick = {
+                        DetectorService.ignore(this@MainActivity, e.droneId)
+                        android.widget.Toast.makeText(this@MainActivity, "Esta rede deixa de dar alertas", android.widget.Toast.LENGTH_SHORT).show()
+                        onClose()
+                    }) { Text("Não é drone") }
                 }
             },
             dismissButton = { TextButton(onClick = onClose) { Text("Fechar") } },

@@ -47,6 +47,14 @@ class DetectorService : Service() {
         const val CH_ALERT = "alertas"
         const val CH_SERVICE = "servico"
         const val TAG = "Detetor"
+        var instance: DetectorService? = null
+
+        /** Diz ao detetor para nunca mais avisar por este id (ex.: rede Wi-Fi de um vizinho). */
+        fun ignore(ctx: Context, id: String) {
+            val p = ctx.getSharedPreferences("cfg", 0)
+            p.edit().putStringSet("ignored", (p.getStringSet("ignored", emptySet())!! + id)).apply()
+            instance?.send(JSONObject().put("cmd", "ignore").put("id", id))
+        }
 
         fun start(ctx: Context) {
             ctx.startForegroundService(Intent(ctx, DetectorService::class.java))
@@ -73,6 +81,7 @@ class DetectorService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+        instance = this
         Repo.init(this)
         prefs = getSharedPreferences("cfg", 0)
         createChannels()
@@ -84,6 +93,7 @@ class DetectorService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int) = START_STICKY
 
     override fun onDestroy() {
+        instance = null
         stopScan()
         gatt?.close()
         gatt = null
@@ -178,6 +188,9 @@ class DetectorService : Service() {
             handler.post {
                 setConn("Ligado")
                 send(JSONObject().put("cmd", "time").put("epoch", System.currentTimeMillis() / 1000.0))
+                getSharedPreferences("cfg", 0).getStringSet("ignored", emptySet())!!.forEach {
+                    send(JSONObject().put("cmd", "ignore").put("id", it))
+                }
                 requestHistory()
             }
         }
@@ -312,6 +325,7 @@ class DetectorService : Service() {
     }
 
     private fun notifyAlert(title: String, e: Ev?, extra: String? = null) {
+        if (e?.droneId != null && getSharedPreferences("cfg", 0).getStringSet("ignored", emptySet())!!.contains(e.droneId)) return
         val base = when {
             e == null -> "Abre a app para ver o histórico"
             e.isRf -> "Rádio típico de drone, sem Remote ID. Não dá posição nem piloto."
