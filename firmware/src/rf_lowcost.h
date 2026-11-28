@@ -5,7 +5,7 @@
 //
 // Escreve os varrimentos pela USB e, nos 2,4 GHz, calcula uma pontuação de "atividade
 // tipo DJI": quantos canais estão ocupados em cada varrimento, sem contar o canal mais
-// forte (o router da casa) e os vizinhos dele, em média nos últimos RF24_WIN varrimentos.
+// forte (o router da casa) e os vizinhos dele, nem os 3 canais de anúncio Bluetooth, em média nos últimos RF24_WIN varrimentos.
 // Calibrado a 28/11 com o Mini 5 Pro: casa calma 0,2–0,6; drone ligado 2–6.
 #pragma once
 #include <Arduino.h>
@@ -39,7 +39,7 @@ struct RfLowcostStatus {
 
 #define RF24_WIN 30          // ~20 s de varrimentos
 #define RF24_ON 2.0f         // liga acima disto
-#define RF24_OFF 0.6f        // desliga abaixo disto
+#define RF24_OFF 1.0f        // desliga abaixo disto (calibrado 28/11: casa calma 0,3–0,7)
 #define RF24_WARMUP_MS 60000 // ignora o primeiro minuto (o telemóvel a ligar-se e a puxar o histórico faz ruído)
 
 // Pura (testada no CI): canais >= 10 % fora do mais forte e dos vizinhos dele.

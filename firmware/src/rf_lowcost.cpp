@@ -139,6 +139,9 @@ int rf24BusyChannels(const uint8_t *pct, int n, int *peakExtra) {
   int busy = 0, best = -1;
   for (int i = 0; i < n; i++) {
     if (pct[i] < 10 || abs(i - mx) <= 1) continue;
+    // canais de anúncio Bluetooth (2402, 2426, 2480 MHz): o próprio detetor e o telemóvel
+    // falam aí sem parar, e isso fazia o alerta nunca desligar
+    if (abs(i - 2) <= 1 || abs(i - 26) <= 1 || abs(i - 80) <= 1) continue;
     busy++;
     if (best < 0 || pct[i] > pct[best]) best = i;
   }
