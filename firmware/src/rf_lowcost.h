@@ -6,7 +6,8 @@
 // Escreve os varrimentos pela USB e, nos 2,4 GHz, calcula uma pontuação de "atividade
 // tipo DJI": quantos canais estão ocupados em cada varrimento, sem contar o canal mais
 // forte (o router da casa) e os vizinhos dele, nem os 3 canais de anúncio Bluetooth, em média nos últimos RF24_WIN varrimentos.
-// Calibrado a 28/11 com o Mini 5 Pro: casa calma 0,2–0,6; drone ligado 2–6.
+// Soma-se 1,5 por cada canal forte (>= 50 %), para apanhar só o comando por perto.
+// Calibrado a 28/11 com o Mini 5 Pro: casa calma 0,2–0,7; drone ligado 2–6; comando perto e drone longe 4–6.
 #pragma once
 #include <Arduino.h>
 
