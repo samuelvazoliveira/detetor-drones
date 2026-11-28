@@ -25,7 +25,7 @@
 #include "rf_lowcost.h"
 #include "rid_parser.h"
 
-#define FW_VERSION "3.2"
+#define FW_VERSION "3.3"
 #define BLE_NAME "DetetorDrones"
 #define NUS_UUID "6e400001-b5a3-f393-e0a9-e50e24dcca9e"
 #define RX_UUID "6e400002-b5a3-f393-e0a9-e50e24dcca9e"
@@ -563,6 +563,7 @@ void setup() {
   bootNo = prefs.getULong("boot", 0) + 1;
   prefs.putULong("boot", bootNo);
   nextId = prefs.getULong("next", 1) + 20;  // salta os que podem não ter sido gravados
+  prefs.putULong("next", nextId);           // grava já, senão um reinício rápido repete ids
   alertCount = prefs.getULong("alerts", 0);
   // hora estimada (como o fake-hwclock): a última que se conheceu, marcada como incerta
   bootEpoch = prefs.getLong64("last", 0);

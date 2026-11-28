@@ -33,12 +33,20 @@ static bool nrfBegin() {
   digitalWrite(NRF_CSN, HIGH);
   digitalWrite(NRF_CE, LOW);
   nrfSpi.begin(NRF_SCK, NRF_MISO, NRF_MOSI, NRF_CSN);
-  delay(5);
-  // presença: escreve um canal e lê-o de volta
-  nrfWrite(0x05, 0x2A);  // RF_CH
-  if (nrfRead(0x05) != 0x2A) return false;
-  nrfWrite(0x05, 0x10);
-  if (nrfRead(0x05) != 0x10) return false;
+  // presença: escreve um canal e lê-o de volta. O nRF24 precisa de ~100 ms depois de
+  // receber corrente, e o regulador do adaptador ainda demora, por isso tenta várias vezes.
+  uint8_t a = 0, b = 0;
+  for (int tent = 0; tent < 5; tent++) {
+    delay(150);
+    nrfWrite(0x05, 0x2A);  // RF_CH
+    a = nrfRead(0x05);
+    nrfWrite(0x05, 0x10);
+    b = nrfRead(0x05);
+    if (a == 0x2A && b == 0x10) break;
+  }
+  // diagnóstico: 0x00 = MISO sem ligação ou sem corrente; 0xFF = MISO no ar; outro = fios trocados
+  Serial.printf("{\"t\":\"nrf24_diag\",\"rd1\":%u,\"rd2\":%u,\"status\":%u}\n", a, b, nrfRead(0x07));
+  if (a != 0x2A || b != 0x10) return false;
   nrfWrite(0x01, 0x00);  // EN_AA: sem auto-ack (o auto-ack faria o módulo transmitir)
   nrfWrite(0x02, 0x00);  // EN_RXADDR: nenhum pipe
   nrfWrite(0x06, 0x07);  // RF_SETUP: 1 Mbps (largura de banda do recetor mais estreita)
