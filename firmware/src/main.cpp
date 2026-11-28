@@ -25,7 +25,7 @@
 #include "rf_lowcost.h"
 #include "rid_parser.h"
 
-#define FW_VERSION "3.7"
+#define FW_VERSION "3.8"
 #define BLE_NAME "DetetorDrones"
 #define NUS_UUID "6e400001-b5a3-f393-e0a9-e50e24dcca9e"
 #define RX_UUID "6e400002-b5a3-f393-e0a9-e50e24dcca9e"

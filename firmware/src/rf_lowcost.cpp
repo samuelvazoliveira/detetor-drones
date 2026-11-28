@@ -153,19 +153,12 @@ static void rf24Score(const uint8_t *s24) {
   static uint8_t win[RF24_WIN];
   static int pos = 0, filled = 0;
   int peak;
-  // sinais fortes (>= 50 %) contam a dobrar e meio: é o que se vê quando só o comando
-  // está perto e o drone voa mais longe (saltos estreitos a 80–100 %). O router fica-se
-  // pelos 30–35 % e a casa calma quase nunca passa dos 50 %.
-  int strong = 0;
-  for (int i = 0; i < RF24_CHANNELS; i++)
-    if (s24[i] >= 50 && !(abs(i - 2) <= 1 || abs(i - 26) <= 1 || abs(i - 80) <= 1)) strong++;
-  int v = rf24BusyChannels(s24, RF24_CHANNELS, &peak) * 2 + strong * 3;  // em meios
-  win[pos] = v > 255 ? 255 : v;
+  win[pos] = rf24BusyChannels(s24, RF24_CHANNELS, &peak);
   pos = (pos + 1) % RF24_WIN;
   if (filled < RF24_WIN) filled++;
   int sum = 0;
   for (int i = 0; i < filled; i++) sum += win[i];
-  st.score24 = (float)sum / filled / 2.0f;  // a janela guarda meios
+  st.score24 = (float)sum / filled;
   if (peak >= 0) st.peakMhz24 = 2400 + peak;
   if (millis() < RF24_WARMUP_MS || filled < RF24_WIN) return;
   if (!st.active24 && st.score24 >= RF24_ON) st.active24 = true;
