@@ -132,6 +132,36 @@ static void rx58Sweep(uint16_t out[RF58_POINTS]) {
   }
 }
 
+int rf24BusyChannels(const uint8_t *pct, int n, int *peakExtra) {
+  int mx = 0;
+  for (int i = 1; i < n; i++)
+    if (pct[i] > pct[mx]) mx = i;
+  int busy = 0, best = -1;
+  for (int i = 0; i < n; i++) {
+    if (pct[i] < 10 || abs(i - mx) <= 1) continue;
+    busy++;
+    if (best < 0 || pct[i] > pct[best]) best = i;
+  }
+  if (peakExtra) *peakExtra = best;
+  return busy;
+}
+
+static void rf24Score(const uint8_t *s24) {
+  static uint8_t win[RF24_WIN];
+  static int pos = 0, filled = 0;
+  int peak;
+  win[pos] = rf24BusyChannels(s24, RF24_CHANNELS, &peak);
+  pos = (pos + 1) % RF24_WIN;
+  if (filled < RF24_WIN) filled++;
+  int sum = 0;
+  for (int i = 0; i < filled; i++) sum += win[i];
+  st.score24 = (float)sum / filled;
+  if (peak >= 0) st.peakMhz24 = 2400 + peak;
+  if (millis() < RF24_WARMUP_MS || filled < RF24_WIN) return;
+  if (!st.active24 && st.score24 >= RF24_ON) st.active24 = true;
+  else if (st.active24 && st.score24 < RF24_OFF) st.active24 = false;
+}
+
 // =====================================================================================
 // Tarefa: varre as duas bandas em ciclo e escreve pela USB
 // =====================================================================================
@@ -143,6 +173,7 @@ static void rfTask(void *) {
     if (st.nrfPresent) {
       nrfSweep(s24, 20);
       st.sweeps24++;
+      rf24Score(s24);
       int n = snprintf(buf, sizeof(buf), "{\"t\":\"rf24\",\"mhz0\":2400,\"step\":1,\"pct\":[");
       for (int i = 0; i < RF24_CHANNELS && n < (int)sizeof(buf) - 8; i++)
         n += snprintf(buf + n, sizeof(buf) - n, i ? ",%u" : "%u", s24[i]);

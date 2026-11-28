@@ -314,7 +314,7 @@ class DetectorService : Service() {
     private fun notifyAlert(title: String, e: Ev?, extra: String? = null) {
         val base = when {
             e == null -> "Abre a app para ver o histórico"
-            e.isRf -> "Atividade de rádio típica de drone. Sem identificação."
+            e.isRf -> "Rádio típico de drone, sem Remote ID. Não dá posição nem piloto."
             e.isWifiHint -> "Rede Wi-Fi típica de drone. Sem identificação."
             e.data.has("op_dist_m") -> "Piloto a ${e.data.optInt("op_dist_m")} m de casa"
             else -> "Remote ID recebido"

@@ -25,7 +25,7 @@
 #include "rf_lowcost.h"
 #include "rid_parser.h"
 
-#define FW_VERSION "3.3"
+#define FW_VERSION "3.4"
 #define BLE_NAME "DetetorDrones"
 #define NUS_UUID "6e400001-b5a3-f393-e0a9-e50e24dcca9e"
 #define RX_UUID "6e400002-b5a3-f393-e0a9-e50e24dcca9e"
@@ -613,7 +613,7 @@ void setup() {
 #endif
   scan->start(0, false, true);
 
-  rfLowcostBegin();  // nRF24 / RX5808, se estiverem ligados (só medem, por agora)
+  rfLowcostBegin();  // nRF24 / RX5808, se estiverem ligados
 
   JsonDocument hello;
   hello["t"] = "hello";
@@ -688,6 +688,20 @@ void loop() {
     data["ch"] = h.ch;
     data["src"] = "wifi_beacon";
     report(std::string("wifi:") + mac, data.as<JsonObjectConst>(), false);
+  }
+
+  // rádio 2,4 GHz (nRF24): atividade tipo DJI sem Remote ID
+  static uint32_t lastRf = 0;
+  const RfLowcostStatus &rf = rfLowcostStatus();
+  if (rf.active24 && now - lastRf >= 1000) {
+    lastRf = now;
+    JsonDocument data;
+    data["band"] = "2,4 GHz";
+    data["pattern"] = "dji_like";
+    data["score"] = round(rf.score24 * 10) / 10.0;
+    data["mhz"] = rf.peakMhz24;
+    data["src"] = "nrf24";
+    report("rf:2g4", data.as<JsonObjectConst>(), false);
   }
 
   pumpHistory();

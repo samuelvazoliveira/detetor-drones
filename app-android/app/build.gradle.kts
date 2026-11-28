@@ -11,8 +11,8 @@ android {
         applicationId = "pt.samuel.detetordrones"
         minSdk = 31
         targetSdk = 35
-        versionCode = 2
-        versionName = "1.1"
+        versionCode = 3
+        versionName = "1.2"
     }
     // Chave de assinatura fixa, vinda dos Secrets do GitHub (KEYSTORE_B64 / KEYSTORE_PASSWORD).
     // Sem ela, cada compilação usa uma chave nova e as atualizações não instalam por cima.

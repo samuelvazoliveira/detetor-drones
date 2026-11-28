@@ -3,8 +3,10 @@
 //   * RX5808 (SPI mod)  → RSSI nos 5,8 GHz
 // Só ESCUTA. O nRF24 fica sempre em modo de receção; nunca transmite.
 //
-// Por agora só mede e escreve os varrimentos pela USB (para calibrar com um drone
-// conhecido). As regras de alerta vêm depois da calibração.
+// Escreve os varrimentos pela USB e, nos 2,4 GHz, calcula uma pontuação de "atividade
+// tipo DJI": quantos canais estão ocupados em cada varrimento, sem contar o canal mais
+// forte (o router da casa) e os vizinhos dele, em média nos últimos RF24_WIN varrimentos.
+// Calibrado a 28/11 com o Mini 5 Pro: casa calma 0,2–0,6; drone ligado 2–6.
 #pragma once
 #include <Arduino.h>
 
@@ -30,7 +32,18 @@ struct RfLowcostStatus {
   bool nrfPresent = false;
   bool rx58Present = false;
   uint32_t sweeps24 = 0, sweeps58 = 0;
+  float score24 = 0;        // média de canais ocupados fora do router
+  bool active24 = false;    // há atividade tipo drone nos 2,4 GHz
+  uint16_t peakMhz24 = 0;   // canal extra mais usado no último varrimento
 };
+
+#define RF24_WIN 30          // ~20 s de varrimentos
+#define RF24_ON 2.0f         // liga acima disto
+#define RF24_OFF 0.6f        // desliga abaixo disto
+#define RF24_WARMUP_MS 60000 // ignora o primeiro minuto (o telemóvel a ligar-se e a puxar o histórico faz ruído)
+
+// Pura (testada no CI): canais >= 10 % fora do mais forte e dos vizinhos dele.
+int rf24BusyChannels(const uint8_t *pct, int n, int *peakExtra);
 
 void rfLowcostBegin();                       // deteta os módulos e arranca a tarefa
 const RfLowcostStatus &rfLowcostStatus();

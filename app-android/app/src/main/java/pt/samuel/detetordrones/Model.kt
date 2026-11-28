@@ -41,6 +41,7 @@ fun titleFor(e: Ev): String {
         return "Provável drone (Wi-Fi): $name"
     }
     if (e.isRf) {
+        if (d.optString("pattern") == "dji_like") return "Provável drone DJI (rádio ${d.optString("band")})"
         val what = if (d.optString("pattern") == "hopping") "comando FPV" else "vídeo FPV"
         return "Rádio: $what em ${d.optString("band")}"
     }
